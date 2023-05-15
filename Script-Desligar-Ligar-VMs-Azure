@@ -1,0 +1,33 @@
+# Conecta na sua conta do Azure
+Connect-AzAccount
+
+# Define as variáveis com o nome da sua máquina virtual e o seu grupo de recursos
+$vmName = "nome-da-sua-vm"
+$resourceGroupName = "nome-do-seu-resource-group"
+
+# Define o agendamento de tarefas para iniciar e desligar a VM nos dias de semana
+$taskStartTime = "07:00"
+$taskStopTime = "19:00"
+$taskDaysOfWeek = "Monday,Tuesday,Wednesday,Thursday,Friday"
+
+# Cria a tarefa de iniciar a VM
+$taskStart = New-AzAutomationScheduledRunbook `
+    -Name "start-$vmName" `
+    -ResourceGroupName $resourceGroupName `
+    -AutomationAccountName "nome-da-sua-automation-account" `
+    -ScheduleType "Weekdays" `
+    -StartTime $taskStartTime `
+    -DaysOfWeek $taskDaysOfWeek `
+    -RunbookName "Start-AzVM" `
+    -Parameter @{ "VMName" = $vmName }
+
+# Cria a tarefa de desligar a VM
+$taskStop = New-AzAutomationScheduledRunbook `
+    -Name "stop-$vmName" `
+    -ResourceGroupName $resourceGroupName `
+    -AutomationAccountName "nome-da-sua-automation-account" `
+    -ScheduleType "Weekdays" `
+    -StartTime $taskStopTime `
+    -DaysOfWeek $taskDaysOfWeek `
+    -RunbookName "Stop-AzVM" `
+    -Parameter @{ "VMName" = $vmName }
