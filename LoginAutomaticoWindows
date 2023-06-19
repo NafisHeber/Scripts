@@ -1,0 +1,43 @@
+# Exibir menu
+do {
+    Write-Host "Selecione uma opção:"
+    Write-Host "1 - Ativar login automático"
+    Write-Host "2 - Desativar login automático"
+    $option = Read-Host -Prompt "Digite o número da opção"
+} while ($option -ne "1" -and $option -ne "2")
+
+if ($option -eq "1") {
+    # Solicitar nome de usuário e senha do domínio
+    do {
+        $username = Read-Host -Prompt "Digite o nome de usuário do domínio"
+        $password = Read-Host -Prompt "Digite a senha do usuário" -AsSecureString
+
+        # Criar credenciais a partir do nome de usuário e senha fornecidos
+        $credentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $username, $password
+
+        # Tentar fazer logon com as credenciais fornecidas
+        $isValidCredentials = $false
+        try {
+            $null = Get-WmiObject -Namespace "root\cimv2" -Class Win32_ComputerSystem -Authentication 6 -Credential $credentials
+            $isValidCredentials = $true
+        } catch {
+            Write-Host "Falha no login. Por favor, tente novamente." -ForegroundColor Red
+        }
+    } while (-not $isValidCredentials)
+
+    # Configurar o login automático
+    $regPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
+    Set-ItemProperty -Path $regPath -Name "AutoAdminLogon" -Value "1"
+    Set-ItemProperty -Path $regPath -Name "DefaultUserName" -Value $username
+    Set-ItemProperty -Path $regPath -Name "DefaultPassword" -Value $password
+
+    Write-Host "Configuração de login automático ativada com sucesso!" -ForegroundColor Green
+} elseif ($option -eq "2") {
+    # Desativar o login automático
+    $regPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
+    Set-ItemProperty -Path $regPath -Name "AutoAdminLogon" -Value "0"
+    Set-ItemProperty -Path $regPath -Name "DefaultUserName" -Value ""
+    Set-ItemProperty -Path $regPath -Name "DefaultPassword" -Value ""
+
+    Write-Host "Configuração de login automático desativada com sucesso!" -ForegroundColor Green
+}
